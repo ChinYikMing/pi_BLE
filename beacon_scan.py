@@ -56,6 +56,7 @@ if args.RSSIFilename == None:
 
 nr_scan = args.nrScan
 RSSI_filename = args.RSSIFilename + ".log"
+people_counter_filename = "people_counter"
 
 def encodeurl(url):
     i = 0
@@ -149,17 +150,32 @@ def advertise(url):
     # Resume advertising
     subprocess.call("sudo hcitool -i hci0 cmd 0x08 0x000a 01", shell = True, stdout = DEVNULL)
 
+def match_beacon(uuid):
+    for key in beacons.keys():
+        if key == uuid:
+            return true
+    return false
+
 # main logic
 RSSI_file = open(RSSI_filename, "w+")
+people_counter = 0
 
 for i in range(0, nr_scan):
+    #beacons.clear()
+    people_counter = 0
     devices = service.scan(2)
+    people_counter_file = open(people_counter_filename, "w")
     for i, (addr, data) in enumerate(list(devices.items())):
         beacon = Beacon(data, addr)
-        beacons[beacon.uuid] = beacon
         RSSI_file.write(str(beacon.uuid) + " " + str(beacon.rssi))
         RSSI_file.write("\n")
-        if beacon.rssi >= -50:
+        if int(beacon.rssi) >= -50:
+            #beacons[beacon.uuid] = beacon
+            people_counter += 1
             advertise(url)
         print(beacon)
+    #people_counter = len(beacons)
+    #people_counter_file.write(str(len(beacons)) + "\n")
+    people_counter_file.write(str(people_counter) + "\n")
+    people_counter_file.close()
         #print("address: {}, data: {}".format(addr, data))
