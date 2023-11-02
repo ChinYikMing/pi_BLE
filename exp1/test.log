@@ -1,0 +1,8 @@
+0 -33.66
+test 
+write 120 -53.18
+240 -64.54
+360 -59.54
+480 -63.24
+done >> test >>
+echo -n "$d "; tail -1 ${d} #!/usr/bin/bash 
