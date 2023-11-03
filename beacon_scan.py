@@ -13,6 +13,7 @@ class Beacon:
         self.power = data[3]
         self.rssi = data[4]
         self.address = address
+        self.reward = 0
 
     def __str__(self):
         ret = "Beacon: address:{ADDR} uuid:{UUID} major:{MAJOR} " \
@@ -22,7 +23,6 @@ class Beacon:
         return ret
 
 service = BeaconService()
-beacons = {}
 
 application_name = "beacon_scanner"
 url = "https://rog.asus.com"
@@ -56,7 +56,7 @@ if args.RSSIFilename == None:
 
 nr_scan = args.nrScan
 RSSI_filename = args.RSSIFilename + ".log"
-people_counter_filename = "people_counter"
+people_counter_file = "people_counter"
 
 def encodeurl(url):
     i = 0
@@ -158,24 +158,46 @@ def match_beacon(uuid):
 
 # main logic
 RSSI_file = open(RSSI_filename, "w+")
-people_counter = 0
+e_counter = 0
+RSSI_acc = 0
+rcv_counter = 0
+found = True
 
-for i in range(0, nr_scan):
+beacons = {}
+beacon = Beacon('41:34:F6:D5:E2:5B', ['6cdf66a2-0573-4f16-ab00-7f784ea85f69', 0, 0, 197, -69])
+beacons[beacon.uuid] = beacon
+
+#for i in range(0, nr_scan):
+while True:
     #beacons.clear()
-    people_counter = 0
+    found = True
+    e_counter = 0
     devices = service.scan(2)
-    people_counter_file = open(people_counter_filename, "w")
+    counter_file = open(people_counter_file, "w")
     for i, (addr, data) in enumerate(list(devices.items())):
         beacon = Beacon(data, addr)
         RSSI_file.write(str(beacon.uuid) + " " + str(beacon.rssi))
         RSSI_file.write("\n")
-        if int(beacon.rssi) >= -50:
-            #beacons[beacon.uuid] = beacon
-            people_counter += 1
+        if int(beacon.rssi) >= -60:
+            for key in beacons:
+                if key == beacon.uuid:
+                    beacon.reward += 1
+                else:
+                    found = False
+            if not found:
+                print("not found", beacon.uuid)
+                beacons[beacon.uuid] = beacon
+        if 'bc82c605-cc4b-40a5-96f8-b175fcf7ec22' == beacon.uuid:
+            print("reward", beacon.reward)
+        # if 'aaaa' == beacon.uuid:
+        # else
+    for key in beacons:
+        #print(key, beacons[key].reward)
+        if beacons[key].reward == 3:
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             advertise(url)
-        print(beacon)
-    #people_counter = len(beacons)
-    #people_counter_file.write(str(len(beacons)) + "\n")
-    people_counter_file.write(str(people_counter) + "\n")
-    people_counter_file.close()
-        #print("address: {}, data: {}".format(addr, data))
+            e_counter += 1
+            #beacon.reward = 3
+    counter_file.write(str(e_counter) + "\n")
+RSSI_file.write("average: " + str(RSSI_acc / rcv_counter) + "\n")
+RSSI_file.close()

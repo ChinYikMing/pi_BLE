@@ -26,7 +26,21 @@
 </head>
 <body background="{{ url_for('static', filename='images/background.jpg') }}">
     <div class="container">
-	    <div class="number">{{ people_counter }}</div>
+	    <div class="number" id="peopleCounter">0</div>
     </div>
 </body>
 </html>
+<script>
+	async function getPeopleCounter(url){
+	    const response = await fetch(url);
+	    const text = await response.text();
+	    console.log(text);
+	    return text
+	}
+
+	const peopleCounter = document.getElementById("peopleCounter");
+	setInterval(async function(){
+		const res = await getPeopleCounter("http://127.0.0.1:5000/peopleCounter");
+		peopleCounter.innerHTML = res;
+	}, 500);
+</script>
