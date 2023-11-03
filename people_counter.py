@@ -173,30 +173,35 @@ beacons = []
 while True:
     devices = service.scan(1)
     counter_file = open(people_counter_file, "w")
-    for i, (addr, data) in enumerate(list(devices.items())):
-        beacon = Beacon(data, addr)
+    # print(list(devices.items()))
+    if list(devices.items()) == []:
+        # print("clear")
+        beacons.clear()
+    else :
+        for i, (addr, data) in enumerate(list(devices.items())):
+            beacon = Beacon(data, addr)
+
+            # Find whether same uuid exist or not
+            found = False
+            for b in beacons:
+                if b.uuid == beacon.uuid:
+                    b.rssi = beacon.rssi
+                    # If RSSI is bigger than a threshold, reward increase
+                    if int(b.rssi) >= -60:
+                        if b.reward < 3:
+                            b.reward += 1
+                        # advertise the ads if reward equal to 3
+                        if b.reward == 3:
+                            pass
+                            # TODO:  It leads to advertise too many times.
+                            advertise(url)
+                    else:
+                        b.reward = 0
+                    found = True
+            # If uuid doesn't exist, then add beacon's information into list
+            if not found:
+                beacons.append(beacon)
         
-        # Find whether same uuid exist or not
-        found = False
-        for b in beacons:
-            if b.uuid == beacon.uuid:
-                b.rssi = beacon.rssi
-                # If RSSI is bigger than a threshold, reward increase
-                if int(b.rssi) >= -60:
-                    if b.reward < 3:
-                        b.reward += 1
-                    # advertise the ads if reward equal to 3
-                    if b.reward == 3:
-                        pass
-                        # TODO:  It leads to advertise too many times.
-                        # advertise(url)
-                else:
-                    b.reward = 0
-                found = True
-        # If uuid doesn't exist, then add beacon's information into list
-        if not found:
-            beacons.append(beacon)
-    
     # count number of people
     num_people = 0
     for i in beacons:
