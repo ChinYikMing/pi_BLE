@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from bluetooth.ble import BeaconService
 import argparse
 import sys
@@ -207,5 +209,5 @@ while True:
     for i in beacons:
         if i.reward == 3:
             num_people += 1
-    print("nuber of people: " + str(num_people))
+    #print("nuber of people: " + str(num_people))
     counter_file.write(str(num_people) + "\n")
